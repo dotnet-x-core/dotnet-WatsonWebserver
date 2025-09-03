@@ -308,5 +308,21 @@
             Stop accepting new connections.
             </summary>
         </member>
+        <member name="M:WatsonWebserver.Lite.WebserverLite.GetBestLocalHostName">
+            <summary>
+            Robustly retrieves and sanitizes a valid hostname for the local machine
+            by trying several strategies in order of preference.
+            This method is safe to use on all platforms, including iOS and Android.
+            </summary>
+            <returns>An RFC-compliant valid hostname, with a final fallback to "localhost".</returns>
+        </member>
+        <member name="M:WatsonWebserver.Lite.WebserverLite.SanitizeHostName(System.String)">
+            <summary>
+            Converts a string into a valid RFC 1123 hostname.
+            It removes invalid characters, converts to lowercase, and handles hyphens.
+            </summary>
+            <param name="potentialName">The name to sanitize.</param>
+            <returns>A valid hostname, or null if the string contains no valid characters.</returns>
+        </member>
     </members>
 </doc>

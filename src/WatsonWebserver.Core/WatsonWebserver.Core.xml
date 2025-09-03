@@ -1968,6 +1968,11 @@
             Be sure to set Events.Logger in order to receive debug messages.
             </summary>
         </member>
+        <member name="P:WatsonWebserver.Core.WebserverSettings.UseMachineHostname">
+            <summary>
+            When true, the machine's hostname will be used instead of the value specified in Hostname.
+            </summary>
+        </member>
         <member name="M:WatsonWebserver.Core.WebserverSettings.#ctor">
             <summary>
             Webserver settings.

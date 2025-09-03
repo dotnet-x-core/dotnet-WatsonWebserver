@@ -6,12 +6,13 @@
     using System.Linq;
     using System.Net;
     using System.Reflection;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Text.Json.Serialization;
-    using WatsonWebserver.Core;
     using System.Runtime.InteropServices;
     using System.Text;
+    using System.Text.Json.Serialization;
+    using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using WatsonWebserver.Core;
 
     /// <summary>
     /// Watson webserver.
@@ -69,7 +70,20 @@
             if (settings == null) settings = new WebserverSettings();
 
             Settings = settings;
-            Settings.Headers.DefaultHeaders[WebserverConstants.HeaderHost] = settings.Hostname + ":" + settings.Port;
+
+            // TODO: Use the following to determine the hostname to use in the Host when you will deploy the Watson.Core changes in order to use 
+            // the settings.UseMachineHostname option.
+            // string hostnameForHeader = settings.UseMachineHostname ? GetBestLocalHostName() : settings.Hostname;
+
+            // TODO: this is the current behavior, which does not use the UseMachineHostname option and it is limited to just checking for * or +
+            string hostnameForHeader = settings.Hostname;
+            if (settings.Hostname == "*" || settings.Hostname == "+")
+            {
+                hostnameForHeader = GetBestLocalHostName();
+            }
+
+            Settings.Headers.DefaultHeaders[WebserverConstants.HeaderHost] = hostnameForHeader + ":" + settings.Port;
+
             Routes.Default = defaultRoute;
 
             _Header = "[Webserver " + Settings.Prefix + "] ";
@@ -157,6 +171,78 @@
         #endregion
 
         #region Private-Methods
+
+        //TODO: Consider move GetBestLocalHostName and SanitizeHostName to Watson.Core 
+        //      to avoid DRY violations.
+
+        /// <summary>
+        /// Robustly retrieves and sanitizes a valid hostname for the local machine
+        /// by trying several strategies in order of preference.
+        /// This method is safe to use on all platforms, including iOS and Android.
+        /// </summary>
+        /// <returns>An RFC-compliant valid hostname, with a final fallback to "localhost".</returns>
+        private static string GetBestLocalHostName()
+        {
+            string sanitizedHostName;
+
+            // Attempt 1: Dns.GetHostName() - The best choice for network identity.
+            try
+            {
+                sanitizedHostName = SanitizeHostName(Dns.GetHostName());
+                if (!string.IsNullOrEmpty(sanitizedHostName))
+                {
+                    return sanitizedHostName;
+                }
+            }
+            catch { /* Ignore and move to fallback */ }
+
+            // Attempt 2: Environment.MachineName - A solid backup that returns the device name.
+            try
+            {
+                sanitizedHostName = SanitizeHostName(Environment.MachineName);
+                if (!string.IsNullOrEmpty(sanitizedHostName))
+                {
+                    return sanitizedHostName;
+                }
+            }
+            catch { /* Ignore and move to fallback */ }
+
+            return "localhost";
+        }
+
+        /// <summary>
+        /// Converts a string into a valid RFC 1123 hostname.
+        /// It removes invalid characters, converts to lowercase, and handles hyphens.
+        /// </summary>
+        /// <param name="potentialName">The name to sanitize.</param>
+        /// <returns>A valid hostname, or null if the string contains no valid characters.</returns>
+        private static string SanitizeHostName(string potentialName)
+        {
+            if (string.IsNullOrWhiteSpace(potentialName))
+            {
+                return null;
+            }
+
+            // 1. Convert to lowercase for consistency.
+            string sanitized = potentialName.ToLowerInvariant();
+
+            // 2. Replace spaces and other common separators with a hyphen.
+            sanitized = Regex.Replace(sanitized, @"[\s_.]+", "-");
+
+            // 3. Remove all characters that are not letters, numbers, or hyphens.
+            sanitized = Regex.Replace(sanitized, @"[^a-z0-9-]", "");
+
+            // 4. Remove any leading or trailing hyphens.
+            sanitized = sanitized.Trim('-');
+
+            // 5. If nothing is left after cleaning, the name is invalid.
+            if (string.IsNullOrEmpty(sanitized))
+            {
+                return null;
+            }
+
+            return sanitized;
+        }
 
         /// <summary>
         /// Tear down the server and dispose of background workers.
