@@ -141,6 +141,22 @@
             }
         }
 
+        /// <summary>
+        /// When true, the machine's hostname will be used instead of the value specified in Hostname.
+        /// </summary>
+        public bool UseMachineHostname
+        {
+            get
+            {
+                if (Hostname == "*" || Hostname == "+") return true;
+                return _UseMachineHostname;
+            }
+            set
+            {
+                _UseMachineHostname = (Hostname == "*" || Hostname == "+") || value;
+            }
+        }
+
         #endregion
 
         #region Private-Members
@@ -152,6 +168,7 @@
         private AccessControlManager _AccessControl = new AccessControlManager(AccessControlMode.DefaultPermit);
         private DebugSettings _Debug = new DebugSettings();
         private HeaderSettings _Headers = new HeaderSettings();
+        private bool _UseMachineHostname = false;
 
         #endregion
 

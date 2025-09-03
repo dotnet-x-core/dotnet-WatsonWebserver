@@ -29,7 +29,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="CavemanTcp" Version="2.0.9" />
-		<PackageReference Include="Watson.Core" Version="6.3.12" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -46,6 +45,10 @@
 			<PackagePath></PackagePath>
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\WatsonWebserver.Core\WatsonWebserver.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

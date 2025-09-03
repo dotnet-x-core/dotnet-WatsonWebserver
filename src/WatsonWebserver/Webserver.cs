@@ -69,7 +69,10 @@
             if (settings == null) settings = new WebserverSettings();
 
             Settings = settings;
-            Settings.Headers.DefaultHeaders[WebserverConstants.HeaderHost] = settings.Hostname + ":" + settings.Port;
+
+            string hostnameForHeader = settings.UseMachineHostname ? GetBestLocalHostName() : settings.Hostname;
+            Settings.Headers.DefaultHeaders[WebserverConstants.HeaderHost] = hostnameForHeader + ":" + settings.Port;
+
             Routes.Default = defaultRoute;
 
             _Header = "[Webserver " + Settings.Prefix + "] ";
